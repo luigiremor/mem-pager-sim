@@ -5,8 +5,8 @@
 #include <time.h>
 
 #define MENU_VIEW_MEMORY 1
-#define MENU_CREATE_PROCESS 2
-#define MENU_VIEW_PAGE_TABLE 3
+#define MENU_VIEW_PAGE_TABLE 2
+#define MENU_CREATE_PROCESS 3
 #define MENU_EXIT 4
 
 #define INITIAL_PROCESS_LIST_CAPACITY 10
@@ -185,11 +185,14 @@ int main()
     int choice;
     while (1)
     {
-        printf("\n=== Main Menu ===\n");
-        printf("1. View Physical Memory\n");
-        printf("2. Create Process\n");
-        printf("3. View Process Page Table\n");
-        printf("4. Exit\n");
+        printf("\n+------------------------------------------+\n");
+        printf("|                MAIN MENU                 |\n");
+        printf("+------------------------------------------+\n");
+        printf("| 1. View Physical Memory                  |\n");
+        printf("| 2. View Process Page Table               |\n");
+        printf("| 3. Create Process                        |\n");
+        printf("| 4. Exit                                  |\n");
+        printf("+------------------------------------------+\n");
         printf("Select an option: ");
 
         if (scanf("%d", &choice) != 1)
