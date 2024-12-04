@@ -4,39 +4,32 @@
 #include <math.h>
 #include <time.h>
 
-// Constants for menu options
 #define MENU_VIEW_MEMORY 1
 #define MENU_CREATE_PROCESS 2
 #define MENU_VIEW_PAGE_TABLE 3
 #define MENU_EXIT 4
 
-// Initial capacity for the process list
 #define INITIAL_PROCESS_LIST_CAPACITY 10
-
-// Maximum length for input buffers
 #define INPUT_BUFFER_SIZE 100
 
-// Structure to represent a process
 typedef struct
 {
     int process_id;
-    int process_size; // in bytes
+    int process_size;
     int number_of_pages;
-    int *page_table; // Mapping of logical pages to physical frames
+    int *page_table;
 } Process;
 
-// Structure to represent physical memory
 typedef struct
 {
     unsigned char *memory;
-    int total_size; // in bytes
-    int page_size;  // size of a page/frame in bytes
+    int total_size;
+    int page_size;
     int number_of_frames;
-    int *free_frames; // List of free frame indices
+    int *free_frames;
     int free_frame_count;
 } PhysicalMemory;
 
-// Structure to manage a dynamic list of processes
 typedef struct
 {
     Process *processes;
@@ -44,15 +37,74 @@ typedef struct
     int capacity;
 } ProcessList;
 
-// Function Prototypes
+/**
+ * Checks if a number is a power of two.
+ *
+ * @param number The number to check.
+ * @return 1 if the number is a power of two, 0 otherwise.
+ */
 int is_power_of_two(int number);
+
+/**
+ * Initializes the physical memory structure.
+ *
+ * @param phys_mem Pointer to the PhysicalMemory structure to initialize.
+ * @param total_size Total size of physical memory in bytes.
+ * @param page_size Size of each page/frame in bytes.
+ */
 void initialize_physical_memory(PhysicalMemory *phys_mem, int total_size, int page_size);
+
+/**
+ * Initializes the process list structure.
+ *
+ * @param proc_list Pointer to the ProcessList structure to initialize.
+ */
 void initialize_process_list(ProcessList *proc_list);
+
+/**
+ * Allocates free frames for a process.
+ *
+ * @param phys_mem Pointer to the PhysicalMemory structure.
+ * @param required_frames Number of frames required.
+ * @param allocated_frames Array to store allocated frame indices.
+ * @return 1 if allocation is successful, 0 otherwise.
+ */
 int allocate_frames(PhysicalMemory *phys_mem, int required_frames, int *allocated_frames);
+
+/**
+ * Creates a new process, allocates memory, and initializes its page table.
+ *
+ * @param phys_mem Pointer to the PhysicalMemory structure.
+ * @param proc_list Pointer to the ProcessList structure.
+ * @param max_process_size Maximum allowed size for a process in bytes.
+ */
 void create_process(PhysicalMemory *phys_mem, ProcessList *proc_list, int max_process_size);
+
+/**
+ * Displays the current state of physical memory, including free frames and frame statuses.
+ *
+ * @param phys_mem Pointer to the PhysicalMemory structure.
+ */
 void view_physical_memory(const PhysicalMemory *phys_mem);
+
+/**
+ * Displays the page table of a specified process.
+ *
+ * @param proc_list Pointer to the ProcessList structure.
+ */
 void view_page_table(const ProcessList *proc_list);
+
+/**
+ * Frees all dynamically allocated memory before exiting the program.
+ *
+ * @param phys_mem Pointer to the PhysicalMemory structure.
+ * @param proc_list Pointer to the ProcessList structure.
+ */
 void free_memory(PhysicalMemory *phys_mem, ProcessList *proc_list);
+
+/**
+ * Clears the input buffer to handle invalid inputs.
+ */
 void clear_input_buffer(void);
 
 int main()
@@ -64,11 +116,8 @@ int main()
     int total_memory_size, page_size, max_process_size;
 
     printf("=== Memory Paging Simulator ===\n\n");
-
-    // Configuration Phase
     printf("Initial Configuration:\n");
 
-    // Input for total physical memory size
     while (1)
     {
         printf("Enter the size of physical memory in bytes (power of 2): ");
@@ -86,7 +135,6 @@ int main()
         break;
     }
 
-    // Input for page size
     while (1)
     {
         printf("Enter the size of a page/frame in bytes (power of 2): ");
@@ -109,7 +157,6 @@ int main()
         break;
     }
 
-    // Input for maximum process size
     while (1)
     {
         printf("Enter the maximum size of a process in bytes (power of 2): ");
@@ -132,11 +179,9 @@ int main()
         break;
     }
 
-    // Initialize physical memory and process list
     initialize_physical_memory(&phys_mem, total_memory_size, page_size);
     initialize_process_list(&proc_list);
 
-    // Main Menu Loop
     int choice;
     while (1)
     {
@@ -177,24 +222,11 @@ int main()
     return 0;
 }
 
-/**
- * Checks if a number is a power of two.
- *
- * @param number The number to check.
- * @return 1 if the number is a power of two, 0 otherwise.
- */
 int is_power_of_two(int number)
 {
     return (number > 0) && ((number & (number - 1)) == 0);
 }
 
-/**
- * Initializes the physical memory structure.
- *
- * @param phys_mem Pointer to the PhysicalMemory structure to initialize.
- * @param total_size Total size of physical memory in bytes.
- * @param page_size Size of each page/frame in bytes.
- */
 void initialize_physical_memory(PhysicalMemory *phys_mem, int total_size, int page_size)
 {
     phys_mem->total_size = total_size;
@@ -222,11 +254,6 @@ void initialize_physical_memory(PhysicalMemory *phys_mem, int total_size, int pa
     phys_mem->free_frame_count = phys_mem->number_of_frames;
 }
 
-/**
- * Initializes the process list structure.
- *
- * @param proc_list Pointer to the ProcessList structure to initialize.
- */
 void initialize_process_list(ProcessList *proc_list)
 {
     proc_list->capacity = INITIAL_PROCESS_LIST_CAPACITY;
@@ -239,19 +266,11 @@ void initialize_process_list(ProcessList *proc_list)
     }
 }
 
-/**
- * Allocates free frames for a process.
- *
- * @param phys_mem Pointer to the PhysicalMemory structure.
- * @param required_frames Number of frames required.
- * @param allocated_frames Array to store allocated frame indices.
- * @return 1 if allocation is successful, 0 otherwise.
- */
 int allocate_frames(PhysicalMemory *phys_mem, int required_frames, int *allocated_frames)
 {
     if (phys_mem->free_frame_count < required_frames)
     {
-        return 0; // Not enough free frames
+        return 0;
     }
 
     for (int i = 0; i < required_frames; i++)
@@ -260,23 +279,15 @@ int allocate_frames(PhysicalMemory *phys_mem, int required_frames, int *allocate
         phys_mem->free_frame_count--;
     }
 
-    return 1; // Allocation successful
+    return 1;
 }
 
-/**
- * Creates a new process, allocates memory, and initializes its page table.
- *
- * @param phys_mem Pointer to the PhysicalMemory structure.
- * @param proc_list Pointer to the ProcessList structure.
- * @param max_process_size Maximum allowed size for a process in bytes.
- */
 void create_process(PhysicalMemory *phys_mem, ProcessList *proc_list, int max_process_size)
 {
     int pid, size;
 
     printf("\n=== Create New Process ===\n");
 
-    // Input for process ID
     while (1)
     {
         printf("Enter Process ID (integer): ");
@@ -287,7 +298,6 @@ void create_process(PhysicalMemory *phys_mem, ProcessList *proc_list, int max_pr
             continue;
         }
 
-        // Check for unique Process ID
         int duplicate = 0;
         for (int i = 0; i < proc_list->count; i++)
         {
@@ -306,7 +316,6 @@ void create_process(PhysicalMemory *phys_mem, ProcessList *proc_list, int max_pr
         break;
     }
 
-    // Input for process size
     while (1)
     {
         printf("Enter Process Size in bytes (power of 2, max %d): ", max_process_size);
@@ -332,10 +341,8 @@ void create_process(PhysicalMemory *phys_mem, ProcessList *proc_list, int max_pr
         break;
     }
 
-    // Calculate the number of pages required
     int pages_needed = (int)ceil((double)size / phys_mem->page_size);
 
-    // Allocate frames
     int *allocated_frames = (int *)malloc(pages_needed * sizeof(int));
     if (allocated_frames == NULL)
     {
@@ -350,7 +357,6 @@ void create_process(PhysicalMemory *phys_mem, ProcessList *proc_list, int max_pr
         return;
     }
 
-    // Initialize logical memory with random data
     unsigned char *logical_memory = (unsigned char *)malloc(size * sizeof(unsigned char));
     if (logical_memory == NULL)
     {
@@ -364,7 +370,6 @@ void create_process(PhysicalMemory *phys_mem, ProcessList *proc_list, int max_pr
         logical_memory[i] = (unsigned char)(rand() % 256);
     }
 
-    // Copy logical memory to physical memory frames
     for (int i = 0; i < pages_needed; i++)
     {
         int frame_index = allocated_frames[i];
@@ -379,7 +384,6 @@ void create_process(PhysicalMemory *phys_mem, ProcessList *proc_list, int max_pr
 
     free(logical_memory);
 
-    // Add the new process to the process list
     if (proc_list->count >= proc_list->capacity)
     {
         proc_list->capacity *= 2;
@@ -407,11 +411,6 @@ void create_process(PhysicalMemory *phys_mem, ProcessList *proc_list, int max_pr
     printf("Number of Pages: %d\n", pages_needed);
 }
 
-/**
- * Displays the current state of physical memory, including free frames and frame statuses.
- *
- * @param phys_mem Pointer to the PhysicalMemory structure.
- */
 void view_physical_memory(const PhysicalMemory *phys_mem)
 {
     printf("\n=== Physical Memory Status ===\n");
@@ -426,7 +425,6 @@ void view_physical_memory(const PhysicalMemory *phys_mem)
     printf("Frame\tStatus\n");
     for (int i = 0; i < phys_mem->number_of_frames; i++)
     {
-        // Check if the frame is free
         int is_free = 0;
         for (int j = 0; j < phys_mem->free_frame_count; j++)
         {
@@ -440,11 +438,6 @@ void view_physical_memory(const PhysicalMemory *phys_mem)
     }
 }
 
-/**
- * Displays the page table of a specified process.
- *
- * @param proc_list Pointer to the ProcessList structure.
- */
 void view_page_table(const ProcessList *proc_list)
 {
     if (proc_list->count == 0)
@@ -463,7 +456,6 @@ void view_page_table(const ProcessList *proc_list)
         return;
     }
 
-    // Search for the process
     Process *target_process = NULL;
     for (int i = 0; i < proc_list->count; i++)
     {
@@ -480,7 +472,6 @@ void view_page_table(const ProcessList *proc_list)
         return;
     }
 
-    // Display the page table
     printf("\nPage Table for Process ID %d:\n", pid);
     printf("Process Size: %d bytes\n", target_process->process_size);
     printf("Number of Pages: %d\n", target_process->number_of_pages);
@@ -491,31 +482,19 @@ void view_page_table(const ProcessList *proc_list)
     }
 }
 
-/**
- * Frees all dynamically allocated memory before exiting the program.
- *
- * @param phys_mem Pointer to the PhysicalMemory structure.
- * @param proc_list Pointer to the ProcessList structure.
- */
 void free_memory(PhysicalMemory *phys_mem, ProcessList *proc_list)
 {
-    // Free physical memory
     free(phys_mem->memory);
     free(phys_mem->free_frames);
 
-    // Free page tables of all processes
     for (int i = 0; i < proc_list->count; i++)
     {
         free(proc_list->processes[i].page_table);
     }
 
-    // Free the process list
     free(proc_list->processes);
 }
 
-/**
- * Clears the input buffer to handle invalid inputs.
- */
 void clear_input_buffer(void)
 {
     int c;
